@@ -1,0 +1,230 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Chat</title>
+		<meta name="viewport" content="width=device-width, user-scalable=no">
+        
+		<link rel="apple-touch-icon" href="/images/touch-icon-iphone.png">
+		<link rel="apple-touch-icon" sizes="152x152" href="/images/chat-icon.jpg">
+		<link rel="apple-touch-icon" sizes="180x180" href="/images/chat-icon.jpg">
+		<link rel="apple-touch-icon" sizes="167x167" href="/images/chat-icon.jpg">
+		<link rel="apple-touch-startup-image" href="/images/chat-icon.jpg">
+		<meta name="apple-mobile-web-app-title" content="Chat Pv">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+        
+	</head>
+    <style>
+		.chat li .chat-body p
+		{
+			margin: 0;
+			color: #777777;
+		}
+		
+		.panel .slidedown .glyphicon, .glyphicon
+		{
+			margin-right: 5px;
+		}
+		
+		.panel-body
+		{
+			overflow-y: scroll;
+			/*min-height: 573px;*/
+		}
+		
+		::-webkit-scrollbar-track
+		{
+			-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+			background-color: #F5F5F5;
+		}
+		
+		::-webkit-scrollbar
+		{
+			width: 12px;
+			background-color: #F5F5F5;
+		}
+		
+		::-webkit-scrollbar-thumb
+		{
+			-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
+			background-color: #555;
+		}
+	</style>
+	<body>
+    
+    
+        <div class="content" style="overflow: hidden;">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="panel">
+                        <div class="panel-heading navbar-fixed-top bg-primary">
+                            <span class="glyphicon glyphicon-comment"></span> Chat - <span id="meuNick"></span>
+                        </div>
+                        <div class="panel-body" style="overflow: hidden;margin-top: 30px;">
+                            <div class="chat" id="chat">
+                                
+                            </div>
+                        </div>
+                        <div class="panel-footer navbar-fixed-bottom">
+                            <div id="Login">
+                                <div class="input-group">
+                                    <input type="text" name="nick" id="nick" class="form-control" />
+                                    <span class="input-group-btn">
+                                        <button type="button" class="btn btn-primary btn-sm" id="entrar">Entrar</button>
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div id="Mensagem" style="display: none !important;">
+                                <form id="frm">
+                                    <div class="input-group">
+                                        <input id="text-message" type="text" class="form-control input-sm" placeholder="Type your message here..." />
+                                        <span class="input-group-btn">
+                                            <button class="btn btn-warning btn-sm" id="send-button">
+                                                Send</button>
+                                        </span>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+            
+        <div id="msgRecebida" style="display: none;">
+            <div class="col-lg-12" style="background-color: bisque; padding: 10px;">
+        
+                <div class="chat-body clearfix">
+                    <div class="header">
+                        <strong class="primary-font"> [nome]</strong> <small class="pull-right text-muted">
+                        <span class="glyphicon glyphicon-time"></span>[hora]</small>
+                    </div>
+                    <p>
+                        [mensagem]
+                    </p>
+                </div>
+            </div>
+        </div>
+            
+        <div id="msgEnviada" style="display: none;">
+            <div class="col-lg-12" style="padding: 10px;">
+        
+                <div class="chat-body clearfix">
+                    <div class="header">
+                        <small class=" text-muted" style="text-align:left !important;"><span class="glyphicon glyphicon-time"></span>[hora]</small>
+                        <strong class="pull-right primary-font"> [nome]</strong>
+                    </div>
+                    <p class="text-right">
+                        [mensagem]
+                    </p>
+                </div>
+            </div>
+        </div>
+    
+		<script src="/socket.io/socket.io.js"></script>
+		<script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+        <script src="/scripts/jScrollPane.min.js"></script>
+		<script>
+			
+			var panelChat;
+				
+			var dayName = new Array ("domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado");
+			var monName = new Array ("janeiro", "fevereiro", "março", "abril", "Maio", "junho", "agosto", "outubro", "novembro", "dezembro");
+			var now;
+				
+			$(document).ready(function(){
+				Notification.requestPermission()
+				
+				panelChat = $('body');
+					
+			});
+		
+			var socket = io();
+			$('#send-button').on('click', function(){
+				var message = $('#text-message').val();				
+				var nick = $("#nick").val();
+				now = new Date()
+				
+				var h=now.getHours();
+				var m=now.getMinutes();
+				var s=now.getSeconds();
+				
+				var txtData = now.getDate () + " " + monName[now.getMonth()] + " de " + now.getFullYear() + " - " +h+":"+m+":"+s
+				//var txtData = "<h1> Hoje é " + dayName[now.getDay() ] + ", " + now.getDate () + " de " + monName [now.getMonth() ]   +  " de "  + now.getFullYear () + ". </h1>"
+				
+				if(message!=""){
+					socket.emit('message', message, nick, txtData);
+				}
+				
+				$('#text-message').val("");
+				$('#text-message').focus();
+				return false;
+			});
+			
+			$("#entrar").on("click", function(){
+				//$("#spNomeUsuario").html($("#nick").val());
+				$("#Login").hide();
+				$("#Mensagem").show();
+				$("#meuNick").html($("#nick").val())
+				$('#text-message').focus();
+			});
+			
+			socket.on('message', function(msg, nome, hora){
+				
+				var liRecebida = $("#msgRecebida").html();
+				var liEnviada = $("#msgEnviada").html();
+				
+				var NomeLocal = $("#nick").val();
+				
+				if(NomeLocal!=""){
+					if(NomeLocal!=nome){
+						liRecebida = liRecebida.replace("[nome]", nome);
+						liRecebida = liRecebida.replace("[hora]", hora);
+						liRecebida = liRecebida.replace("[mensagem]", msg);
+						$('.chat').append(liRecebida);
+					}else{
+						liEnviada = liEnviada.replace("[nome]", "Eu");
+						liEnviada = liEnviada.replace("[hora]", hora);
+						liEnviada = liEnviada.replace("[mensagem]", msg);
+						$('.chat').append(liEnviada);
+					}
+				}
+				
+				$("#meuNick").html(nome);
+				
+				$('body').scrollTop($('body')[0].scrollHeight);
+				
+				if(!window.Notification) {
+					console.log('Este browser não suporta Web Notifications!')
+				}else{
+					if(NomeLocal!=""){
+						if(NomeLocal!=nome){
+							
+							var audio = new Audio('audio/alert.mp3');
+							audio.play();
+							
+							notificacao = new Notification(nome, {
+								tag: nome,
+								body: msg,
+								iconUrl: 'https://icon-icons.com/icons2/72/PNG/256/chat_messages_14395.png',
+								icon: 'https://icon-icons.com/icons2/72/PNG/256/chat_messages_14395.png'
+							});
+				
+							return notificacao.onclick = function() {
+								notificacao.close();
+								window.open().close();
+								return window.focus();
+							};
+							
+						}
+					}
+				}
+				
+			});
+		</script>
+	</body>
+
+</html>
