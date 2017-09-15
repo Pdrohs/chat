@@ -1,3 +1,6 @@
+/**
+ * CHAT
+ */
 /// <reference path="typings/node/node.d.ts"/>
 var app = require('express')();
 var http = require('http').Server(app);
